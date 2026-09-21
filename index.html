@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>今日列表</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+body{min-height:100vh}
+.page{width:min(760px,100%);margin:auto;padding:8px 8px 30px}
+.head{text-align:center;padding:10px 0 12px;font-size:17px;font-weight:700;border-bottom:1px solid #eee;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.item{
+  position:relative;
+  overflow:hidden;
+  background:#eee;
+  border-radius:5px;
+  aspect-ratio:3/4;
+  cursor:pointer;
+}
+.item img,.item video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  background:#111;
+}
+.play{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:white;
+  display:grid;place-items:center;
+  font-size:18px;padding-left:3px;
+  border:1px solid rgba(255,255,255,.55);
+  pointer-events:none;
+}
+.end{text-align:center;color:#777;font-size:14px;padding:24px 0 12px}
+.back{
+  display:block;width:220px;max-width:90%;height:43px;margin:auto;
+  border:1px solid #ddd;border-radius:7px;background:#fff;color:#111;font-size:15px;
+}
+.viewer{
+  display:none;position:fixed;z-index:9999;inset:0;
+  background:#000;align-items:center;justify-content:center;
+}
+.viewer.show{display:flex}
+.viewer-content{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.viewer img,.viewer video{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.close{
+  position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));
+  z-index:3;width:42px;height:42px;border:0;border-radius:50%;
+  color:white;background:rgba(255,255,255,.16);font-size:26px;
+}
+.nav{
+  position:absolute;z-index:3;top:50%;transform:translateY(-50%);
+  width:42px;height:62px;border:0;color:#fff;background:rgba(0,0,0,.28);
+  font-size:30px;
+}
+.prev{left:0} .next{right:0}
+.count{
+  position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%);color:white;background:rgba(0,0,0,.45);
+  padding:5px 10px;border-radius:20px;font-size:12px;
+}
+@media(min-width:700px){
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="head">今日列表</div>
+  <div class="grid" id="grid"></div>
+  <div class="end">已看完全部</div>
+  <button class="back" onclick="window.scrollTo({top:0,behavior:'smooth'})">返回列表</button>
+</div>
+
+<div class="viewer" id="viewer">
+  <button class="close" onclick="closeViewer()">×</button>
+  <button class="nav prev" onclick="move(-1)">‹</button>
+  <div class="viewer-content" id="viewerContent"></div>
+  <button class="nav next" onclick="move(1)">›</button>
+  <div class="count" id="count"></div>
+</div>
+
+<script>
+const files = [
+  'nmo/IMG_9184.MP4',
+  'nmo/IMG_9192.MP4',
+  'nmo/IMG_9202.MP4',
+  'nmo/IMG_9205.MP4',
+  'nmo/IMG_9207.MP4',
+  'nmo/IMG_9209.MP4',
+  'nmo/IMG_9211.MP4',
+  'nmo/IMG_9214.MP4',
+  'nmo/IMG_9215.MP4',
+  'nmo/IMG_9220.MP4',
+  'nmo/IMG_9221.MP4',
+  'nmo/photo_2026-09-05_20-49-00 (2).jpg',
+  'nmo/photo_2026-09-05_20-49-00.jpg',
+  'nmo/photo_2026-09-05_20-49-01 (2).jpg',
+  'nmo/photo_2026-09-05_20-49-01.jpg',
+  'nmo/photo_2026-09-05_20-49-06.jpg',
+  'nmo/photo_2026-09-05_20-49-07 (2).jpg',
+  'nmo/photo_2026-09-05_20-49-07.jpg',
+  'nmo/photo_2026-09-05_20-49-08.jpg',
+  'nmo/photo_2026-09-05_20-49-09 (2).jpg',
+  'nmo/photo_2026-09-05_20-49-09.jpg',
+  'nmo/photo_2026-09-05_20-49-10 (2).jpg',
+  'nmo/photo_2026-09-05_20-49-10.jpg',
+  'nmo/photo_2026-09-05_20-49-11.jpg',
+  'nmo/photo_2026-09-05_20-49-12.jpg',
+  'nmo/photo_2026-09-05_20-49-15.jpg',
+  'nmo/photo_2026-09-05_20-49-16.jpg',
+  'nmo/photo_2026-09-05_20-50-25.jpg',
+  'nmo/photo_2026-09-05_20-50-28.jpg',
+  'nmo/photo_2026-09-05_20-50-32.jpg',
+  'nmo/photo_2026-09-05_20-50-33.jpg',
+  'nmo/photo_2026-09-05_20-50-38.jpg',
+  'nmo/photo_2026-09-05_20-50-39 (2).jpg',
+  'nmo/photo_2026-09-05_20-50-39.jpg',
+  'nmo/photo_2026-09-05_20-50-40.jpg',
+  'nmo/photo_2026-09-05_20-50-45.jpg',
+  'nmo/photo_2026-09-21_17-57-33.jpg',
+  'nmo/photo_2026-09-21_17-57-39.jpg',
+  'nmo/photo_2026-09-21_17-57-42.jpg'
+];
+
+const grid = document.getElementById('grid');
+const viewer = document.getElementById('viewer');
+const viewerContent = document.getElementById('viewerContent');
+const counter = document.getElementById('count');
+let current = 0;
+
+function isVideo(src){
+  return /\.(mp4|mov|webm)$/i.test(src);
+}
+
+files.forEach((src,index)=>{
+  const box=document.createElement('div');
+  box.className='item';
+
+  if(isVideo(src)){
+    const v=document.createElement('video');
+    v.src=encodeURI(src)+'#t=0.1';
+    v.muted=true;
+    v.playsInline=true;
+    v.preload='metadata';
+    box.appendChild(v);
+
+    const p=document.createElement('span');
+    p.className='play';
+    p.textContent='▶';
+    box.appendChild(p);
+  }else{
+    const img=document.createElement('img');
+    img.src=encodeURI(src);
+    img.loading='lazy';
+    img.alt='';
+    box.appendChild(img);
+  }
+
+  box.onclick=()=>openViewer(index);
+  grid.appendChild(box);
+});
+
+function openViewer(index){
+  current=(index+files.length)%files.length;
+  const src=files[current];
+  viewerContent.innerHTML='';
+
+  if(isVideo(src)){
+    const v=document.createElement('video');
+    v.src=encodeURI(src);
+    v.controls=true;
+    v.autoplay=true;
+    v.playsInline=true;
+    viewerContent.appendChild(v);
+  }else{
+    const img=document.createElement('img');
+    img.src=encodeURI(src);
+    viewerContent.appendChild(img);
+  }
+
+  counter.textContent=(current+1)+' / '+files.length;
+  viewer.classList.add('show');
+  document.body.style.overflow='hidden';
+}
+
+function closeViewer(){
+  const v=viewerContent.querySelector('video');
+  if(v) v.pause();
+  viewer.classList.remove('show');
+  viewerContent.innerHTML='';
+  document.body.style.overflow='';
+}
+
+function move(step){
+  openViewer(current+step);
+}
+
+viewer.addEventListener('click',e=>{
+  if(e.target===viewer) closeViewer();
+});
+
+document.addEventListener('keydown',e=>{
+  if(!viewer.classList.contains('show')) return;
+  if(e.key==='Escape') closeViewer();
+  if(e.key==='ArrowLeft') move(-1);
+  if(e.key==='ArrowRight') move(1);
+});
+
+let touchX=0;
+viewer.addEventListener('touchstart',e=>{
+  touchX=e.changedTouches[0].clientX;
+},{passive:true});
+
+viewer.addEventListener('touchend',e=>{
+  const d=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(d)>50) move(d<0?1:-1);
+},{passive:true});
+</script>
+</body>
+</html>
