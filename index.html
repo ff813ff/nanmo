@@ -2,88 +2,272 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f6f7">
 <title>今日列表</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;background:#fff;color:#111;font-family:Arial,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-body{min-height:100vh}
-.page{width:min(760px,100%);margin:auto;padding:8px 8px 30px}
-.head{text-align:center;padding:10px 0 12px;font-size:17px;font-weight:700;border-bottom:1px solid #eee;margin-bottom:8px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.item{
-  position:relative;
-  overflow:hidden;
-  background:#eee;
-  border-radius:5px;
-  aspect-ratio:3/4;
-  cursor:pointer;
+:root {
+  --bg:#f6f6f7;
+  --panel:#ffffff;
+  --text:#111214;
+  --muted:#7b7d83;
+  --line:rgba(0,0,0,.07);
+  --shadow:0 4px 18px rgba(0,0,0,.055);
 }
-.item img,.item video{
+* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { scroll-behavior:smooth; background:var(--bg); }
+body {
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  overflow-x:hidden;
+}
+button { font:inherit; }
+
+.app {
+  width:min(980px,100%);
+  margin:0 auto;
+  padding:0 10px calc(28px + env(safe-area-inset-bottom));
+}
+
+.topbar {
+  position:sticky;
+  top:0;
+  z-index:30;
+  margin:0 -10px 12px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  background:rgba(246,246,247,.92);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner {
+  max-width:980px;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.title {
+  font-size:19px;
+  line-height:1.1;
+  font-weight:800;
+  letter-spacing:-.35px;
+}
+.count-pill {
+  flex:none;
+  color:#5d6066;
+  font-size:12px;
+  line-height:1;
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.88);
+  border:1px solid var(--line);
+  box-shadow:0 1px 5px rgba(0,0,0,.025);
+}
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+}
+.item {
+  position:relative;
+  width:100%;
+  aspect-ratio:3 / 4;
+  overflow:hidden;
+  border-radius:12px;
+  background:#e9e9ec;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,.035);
+  cursor:pointer;
+  transform:translateZ(0);
+}
+.item img,
+.item video {
   width:100%;
   height:100%;
-  object-fit:cover;
   display:block;
+  object-fit:cover;
   background:#111;
 }
-.play{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:46px;height:46px;border-radius:50%;
-  background:rgba(0,0,0,.55);color:white;
-  display:grid;place-items:center;
-  font-size:18px;padding-left:3px;
-  border:1px solid rgba(255,255,255,.55);
+.item:active {
+  transform:scale(.985);
+}
+.video-badge {
+  position:absolute;
+  left:9px;
+  bottom:9px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 9px;
+  border-radius:999px;
+  color:#fff;
+  font-size:11px;
+  line-height:1;
+  font-weight:700;
+  background:rgba(0,0,0,.58);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
   pointer-events:none;
 }
-.end{text-align:center;color:#777;font-size:14px;padding:24px 0 12px}
-.back{
-  display:block;width:220px;max-width:90%;height:43px;margin:auto;
-  border:1px solid #ddd;border-radius:7px;background:#fff;color:#111;font-size:15px;
+.video-badge::before {
+  content:"";
+  width:0;
+  height:0;
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+  border-left:8px solid #fff;
 }
-.viewer{
-  display:none;position:fixed;z-index:9999;inset:0;
-  background:#000;align-items:center;justify-content:center;
+
+.footer {
+  padding:26px 4px 6px;
+  text-align:center;
 }
-.viewer.show{display:flex}
-.viewer-content{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-.viewer img,.viewer video{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
-.close{
-  position:absolute;right:12px;top:calc(12px + env(safe-area-inset-top));
-  z-index:3;width:42px;height:42px;border:0;border-radius:50%;
-  color:white;background:rgba(255,255,255,.16);font-size:26px;
+.end {
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:12px;
 }
-.nav{
-  position:absolute;z-index:3;top:50%;transform:translateY(-50%);
-  width:42px;height:62px;border:0;color:#fff;background:rgba(0,0,0,.28);
+.back {
+  width:min(320px,92%);
+  height:46px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:#fff;
+  color:#17181b;
+  font-size:14px;
+  font-weight:700;
+  box-shadow:0 3px 12px rgba(0,0,0,.045);
+}
+.back:active { transform:scale(.985); background:#f0f0f2; }
+
+.viewer {
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  touch-action:pan-y;
+}
+.viewer.show { display:flex; }
+.viewer-stage {
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:
+    calc(58px + env(safe-area-inset-top))
+    0
+    calc(58px + env(safe-area-inset-bottom));
+}
+.viewer img,
+.viewer video {
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+}
+.viewer video {
+  width:min(100%,900px);
+}
+
+.close {
+  position:absolute;
+  z-index:5;
+  top:calc(10px + env(safe-area-inset-top));
+  right:12px;
+  width:42px;
+  height:42px;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  background:rgba(255,255,255,.15);
+  font-size:26px;
+  line-height:42px;
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+}
+.nav {
+  position:absolute;
+  z-index:5;
+  top:50%;
+  transform:translateY(-50%);
+  width:40px;
+  height:66px;
+  border:0;
+  color:#fff;
+  background:rgba(0,0,0,.28);
   font-size:30px;
 }
-.prev{left:0} .next{right:0}
-.count{
-  position:absolute;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;
-  transform:translateX(-50%);color:white;background:rgba(0,0,0,.45);
-  padding:5px 10px;border-radius:20px;font-size:12px;
+.prev { left:0; border-radius:0 10px 10px 0; }
+.next { right:0; border-radius:10px 0 0 10px; }
+.viewer-count {
+  position:absolute;
+  z-index:5;
+  left:50%;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  padding:6px 10px;
+  border-radius:999px;
+  color:#fff;
+  background:rgba(0,0,0,.48);
+  font-size:12px;
+  line-height:1;
 }
-@media(min-width:700px){
-  .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+
+@media (max-width:340px) {
+  .app { padding-left:7px; padding-right:7px; }
+  .topbar { margin-left:-7px; margin-right:-7px; }
+  .grid { grid-template-columns:1fr; gap:9px; }
+  .item { aspect-ratio:4 / 5; border-radius:11px; }
+}
+
+@media (min-width:560px) {
+  .app { padding-left:14px; padding-right:14px; }
+  .topbar { margin-left:-14px; margin-right:-14px; padding-left:18px; padding-right:18px; }
+  .grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; }
+  .item { border-radius:14px; }
+}
+
+@media (min-width:900px) {
+  .grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
 }
 </style>
 </head>
-<body>
 
-<div class="page">
-  <div class="head">今日列表</div>
-  <div class="grid" id="grid"></div>
-  <div class="end">已看完全部</div>
-  <button class="back" onclick="window.scrollTo({top:0,behavior:'smooth'})">返回列表</button>
-</div>
+<body>
+<main class="app" id="top">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="title">今日列表</div>
+      <div class="count-pill" id="totalCount">0 个媒体</div>
+    </div>
+  </header>
+
+  <section class="grid" id="grid"></section>
+
+  <footer class="footer">
+    <div class="end">已看完全部</div>
+    <button class="back" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">返回列表顶部</button>
+  </footer>
+</main>
 
 <div class="viewer" id="viewer">
-  <button class="close" onclick="closeViewer()">×</button>
-  <button class="nav prev" onclick="move(-1)">‹</button>
-  <div class="viewer-content" id="viewerContent"></div>
-  <button class="nav next" onclick="move(1)">›</button>
-  <div class="count" id="count"></div>
+  <button class="close" id="closeBtn" type="button" aria-label="关闭">×</button>
+  <button class="nav prev" id="prevBtn" type="button" aria-label="上一个">‹</button>
+  <div class="viewer-stage" id="viewerStage"></div>
+  <button class="nav next" id="nextBtn" type="button" aria-label="下一个">›</button>
+  <div class="viewer-count" id="viewerCount"></div>
 </div>
 
 <script>
@@ -130,98 +314,133 @@ const files = [
 ];
 
 const grid = document.getElementById('grid');
+const totalCount = document.getElementById('totalCount');
 const viewer = document.getElementById('viewer');
-const viewerContent = document.getElementById('viewerContent');
-const counter = document.getElementById('count');
-let current = 0;
+const viewerStage = document.getElementById('viewerStage');
+const viewerCount = document.getElementById('viewerCount');
 
-function isVideo(src){
+let current = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+
+function isVideo(src) {
   return /\.(mp4|mov|webm)$/i.test(src);
 }
 
-files.forEach((src,index)=>{
-  const box=document.createElement('div');
-  box.className='item';
+function encoded(src) {
+  return encodeURI(src);
+}
 
-  if(isVideo(src)){
-    const v=document.createElement('video');
-    v.src=encodeURI(src)+'#t=0.1';
-    v.muted=true;
-    v.playsInline=true;
-    v.preload='metadata';
-    box.appendChild(v);
+totalCount.textContent = files.length + ' 个媒体';
 
-    const p=document.createElement('span');
-    p.className='play';
-    p.textContent='▶';
-    box.appendChild(p);
-  }else{
-    const img=document.createElement('img');
-    img.src=encodeURI(src);
-    img.loading='lazy';
-    img.alt='';
-    box.appendChild(img);
+files.forEach((src,index) => {
+  const item = document.createElement('article');
+  item.className = 'item';
+  item.setAttribute('role','button');
+  item.setAttribute('tabindex','0');
+  item.setAttribute('aria-label','打开媒体 ' + (index + 1));
+
+  if (isVideo(src)) {
+    const v = document.createElement('video');
+    v.src = encoded(src) + '#t=0.1';
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'metadata';
+    v.setAttribute('playsinline','');
+    item.appendChild(v);
+
+    const badge = document.createElement('span');
+    badge.className = 'video-badge';
+    badge.textContent = '视频';
+    item.appendChild(badge);
+  } else {
+    const img = document.createElement('img');
+    img.src = encoded(src);
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    item.appendChild(img);
   }
 
-  box.onclick=()=>openViewer(index);
-  grid.appendChild(box);
+  item.addEventListener('click', () => openViewer(index));
+  item.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openViewer(index);
+    }
+  });
+  grid.appendChild(item);
 });
 
-function openViewer(index){
-  current=(index+files.length)%files.length;
-  const src=files[current];
-  viewerContent.innerHTML='';
+function openViewer(index) {
+  current = (index + files.length) % files.length;
+  const src = files[current];
+  viewerStage.innerHTML = '';
 
-  if(isVideo(src)){
-    const v=document.createElement('video');
-    v.src=encodeURI(src);
-    v.controls=true;
-    v.autoplay=true;
-    v.playsInline=true;
-    viewerContent.appendChild(v);
-  }else{
-    const img=document.createElement('img');
-    img.src=encodeURI(src);
-    viewerContent.appendChild(img);
+  if (isVideo(src)) {
+    const video = document.createElement('video');
+    video.src = encoded(src);
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline','');
+    viewerStage.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.src = encoded(src);
+    img.alt = '';
+    viewerStage.appendChild(img);
   }
 
-  counter.textContent=(current+1)+' / '+files.length;
+  viewerCount.textContent = (current + 1) + ' / ' + files.length;
   viewer.classList.add('show');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
 }
 
-function closeViewer(){
-  const v=viewerContent.querySelector('video');
-  if(v) v.pause();
+function closeViewer() {
+  const v = viewerStage.querySelector('video');
+  if (v) v.pause();
   viewer.classList.remove('show');
-  viewerContent.innerHTML='';
-  document.body.style.overflow='';
+  viewerStage.innerHTML = '';
+  document.body.style.overflow = '';
 }
 
-function move(step){
-  openViewer(current+step);
+function move(step) {
+  const v = viewerStage.querySelector('video');
+  if (v) v.pause();
+  openViewer(current + step);
 }
 
-viewer.addEventListener('click',e=>{
-  if(e.target===viewer) closeViewer();
+document.getElementById('closeBtn').addEventListener('click', closeViewer);
+document.getElementById('prevBtn').addEventListener('click', () => move(-1));
+document.getElementById('nextBtn').addEventListener('click', () => move(1));
+
+viewer.addEventListener('click', e => {
+  if (e.target === viewer) closeViewer();
 });
 
-document.addEventListener('keydown',e=>{
-  if(!viewer.classList.contains('show')) return;
-  if(e.key==='Escape') closeViewer();
-  if(e.key==='ArrowLeft') move(-1);
-  if(e.key==='ArrowRight') move(1);
+document.addEventListener('keydown', e => {
+  if (!viewer.classList.contains('show')) return;
+  if (e.key === 'Escape') closeViewer();
+  if (e.key === 'ArrowLeft') move(-1);
+  if (e.key === 'ArrowRight') move(1);
 });
 
-let touchX=0;
-viewer.addEventListener('touchstart',e=>{
-  touchX=e.changedTouches[0].clientX;
-},{passive:true});
+viewer.addEventListener('touchstart', e => {
+  const t = e.changedTouches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, {passive:true});
 
-viewer.addEventListener('touchend',e=>{
-  const d=e.changedTouches[0].clientX-touchX;
-  if(Math.abs(d)>50) move(d<0?1:-1);
-},{passive:true});
+viewer.addEventListener('touchend', e => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+    move(dx < 0 ? 1 : -1);
+  }
+}, {passive:true});
 </script>
 </body>
 </html>
